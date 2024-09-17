@@ -24,10 +24,6 @@ function WeatherComponent() {
   console.log("weather data", weatherData);
 
   const search = async (city) => {
-    if (!city) {
-      setError("Enter a valid city name");
-      return;
-    }
     const url = `http://api.weatherapi.com/v1/current.json?key=${
       import.meta.env.VITE_WEATHER_API_KEY
     }&q=${city}&aqi=no`;
@@ -35,6 +31,12 @@ function WeatherComponent() {
       setInput("");
       const response = await axios.get(url);
       const data = response.data;
+
+      if (!data.location.name) {
+        setError(`City not found: ${city}`);
+        return;
+      }
+
       const dayNow = new Intl.DateTimeFormat("en-US", {
         timeZone: data.location.tz_id,
         weekday: "long",
@@ -59,7 +61,7 @@ function WeatherComponent() {
         time: timeNow,
       });
     } catch (error) {
-      setError("Failed to fetch weather data. Please try again.\n", error);
+      setError("Failed to fetch weather data. Please provide a valid city name.\n", error);
     }
   };
 
@@ -117,7 +119,6 @@ function WeatherComponent() {
         <div className="w-full flex justify-center items-center gap-4 py-32 max-[1440px]:px-20 max-[1024px]:px-9 max-[768px]:px-10 max-[768px]:flex-col max-[425px]:px-5">
           <div className="left-container w-4/12 h-[55vh] bg-weather-img bg-cover rounded-2xl shadow-lg overflow-hidden max-[1440px]:w-5/12 max-[1024px]:w-6/12 max-[768px]:w-full max-[768px]:h-[45vh]">
             <div className="backdrop-blur-sm px-8 py-12 w-[101%] h-[101%]">
-              {input && <p>{error}</p>}
               <form
                 onSubmit={handleSearch}
                 className="search flex gap-2.5 w-full justify-center items-center max-[768px]:mt-[-20px] max-[425px]:mt-[-30px]"
@@ -138,36 +139,34 @@ function WeatherComponent() {
                   />
                 </button>
               </form>
-              {weatherData && (
-                <div className="temp-section flex flex-col justify-center items-center mt-8">
-                  {weatherIcon ? (
-                    <img
-                      className="w-32 max-[768px]:w-24 max-[425px]:w-20"
-                      src={weatherIcon}
-                      alt="weather-icon"
-                    />
-                  ) : null}
-                  <h1 className="text-[3rem] font-bold [text-shadow:_0_0_15px_rgb(0_0_0_/_60%)] max-[768px]:text-[2.5rem]">
-                    {weatherData.temperature || "0"}°c
-                  </h1>
-                  <p className="font-[600] [text-shadow:_0_0_10px_rgb(0_0_0_/_60%)] mt-[-10px]">
-                    feels like {weatherData.feelsTemp || "0"}°c
+              <div className="temp-section flex flex-col justify-center items-center mt-8">
+                {weatherIcon ? (
+                  <img
+                    className="w-32 max-[768px]:w-24 max-[425px]:w-20"
+                    src={weatherIcon}
+                    alt="weather-icon"
+                  />
+                ) : null}
+                <h1 className="text-[3rem] font-bold [text-shadow:_0_0_15px_rgb(0_0_0_/_60%)] max-[768px]:text-[2.5rem]">
+                  {weatherData.temperature || "0"}°c
+                </h1>
+                <p className="font-[600] [text-shadow:_0_0_10px_rgb(0_0_0_/_60%)] mt-[-10px]">
+                  feels like {weatherData.feelsTemp || "0"}°c
+                </p>
+                <h1 className="text-[3rem] font-bold tracking-[3px] [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
+                  {weatherData.day || "Weekday"}
+                </h1>
+                <div className="flex">
+                  <img
+                    className="w-8 h-8 mr-1.5 shadow-2xl"
+                    src={location}
+                    alt="wind-speed-png"
+                  />
+                  <p className="text-2xl font-semibold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] tracking-wider">
+                    {weatherData.location}
                   </p>
-                  <h1 className="text-[3rem] font-bold tracking-[3px] [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
-                    {weatherData.day || "Weekday"}
-                  </h1>
-                  <div className="flex">
-                    <img
-                      className="w-8 h-8 mr-1.5 shadow-2xl"
-                      src={location}
-                      alt="wind-speed-png"
-                    />
-                    <p className="text-2xl text-nowrap font-semibold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] tracking-wider">
-                      {weatherData.location}
-                    </p>
-                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
