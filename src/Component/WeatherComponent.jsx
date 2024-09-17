@@ -21,21 +21,15 @@ function WeatherComponent() {
   const [error, setError] = useState("");
   const [input, setInput] = useState("");
   const inputRef = useRef();
-  console.log("weather data", weatherData);
+  
 
   const search = async (city) => {
-    const url = `http://api.weatherapi.com/v1/current.json?key=${
-      import.meta.env.VITE_WEATHER_API_KEY
-    }&q=${city}&aqi=no`;
+    const API_KEY = import.meta.env.VITE_WEATHER_API_KEY
+    const url = `http://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
     try {
       setInput("");
       const response = await axios.get(url);
       const data = response.data;
-
-      if (!data.location.name) {
-        setError(`City not found: ${city}`);
-        return;
-      }
 
       const dayNow = new Intl.DateTimeFormat("en-US", {
         timeZone: data.location.tz_id,
@@ -43,13 +37,14 @@ function WeatherComponent() {
       })
         .format(new Date())
         .toUpperCase();
+
       const timeNow = new Intl.DateTimeFormat("en-US", {
         timeZone: data.location.tz_id,
         hour: "2-digit",
         minute: "2-digit",
       }).format(new Date());
 
-      setWeatherData({
+      const weatherDetails = {
         location: data.location.name,
         windSpeed: data.current.wind_kph,
         humidity: data.current.humidity,
@@ -59,16 +54,29 @@ function WeatherComponent() {
         condition: data.current.condition.text,
         day: dayNow,
         time: timeNow,
-      });
+      }
+
+      setWeatherData(weatherDetails);
+      sessionStorage.setItem("weatherData", JSON.stringify(weatherDetails))
     } catch (error) {
       setError("Failed to fetch weather data. Please provide a valid city name.\n", error);
     }
   };
 
   useEffect(() => {
-    search("new delhi");
+    const savedWeatherData = sessionStorage.getItem("weatherData");
+    if (savedWeatherData) {
+      setWeatherData(JSON.parse(savedWeatherData));
+    } else {
+      search("new delhi");
+    }
   }, []);
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    search(inputRef.current.value);
+  };
+  
   const weatherCondition = weatherData?.condition || "";
   const conditions = {
     mist: mistIcon,
@@ -81,18 +89,14 @@ function WeatherComponent() {
     clear: clearSkyIcon,
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    search(inputRef.current.value);
-  };
-
   const getWeatherIcon = () => {
-    const weatherWords = weatherCondition.toLowerCase().split(" ");
-    const matchingCondition = Object.keys(conditions).find((condition) =>
-      weatherWords.includes(condition.toLowerCase())
-    );
-    return conditions[matchingCondition] || null;
-  };
+    const weather = weatherCondition.toLowerCase();
+    const matchWeather = Object.keys(conditions).find(condition => 
+      weather.includes(condition)
+    )
+
+    return conditions[matchWeather];
+  }
 
   const weatherIcon = getWeatherIcon();
 
@@ -140,13 +144,13 @@ function WeatherComponent() {
                 </button>
               </form>
               <div className="temp-section flex flex-col justify-center items-center mt-8">
-                {weatherIcon ? (
+                {weatherIcon && (
                   <img
                     className="w-32 max-[768px]:w-24 max-[425px]:w-20"
                     src={weatherIcon}
                     alt="weather-icon"
                   />
-                ) : null}
+                )}
                 <h1 className="text-[3rem] font-bold [text-shadow:_0_0_15px_rgb(0_0_0_/_60%)] max-[768px]:text-[2.5rem]">
                   {weatherData.temperature || "0"}°c
                 </h1>
