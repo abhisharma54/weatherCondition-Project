@@ -25,7 +25,7 @@ function WeatherComponent() {
 
   const search = async (city) => {
     const API_KEY = import.meta.env.VITE_WEATHER_API_KEY
-    const url = `http://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
+    const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
     try {
       setInput("");
       const response = await axios.get(url);
