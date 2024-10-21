@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   rainIcon,
   sunIcon,
@@ -19,9 +19,8 @@ import axios from "axios";
 function WeatherComponent() {
   const [weatherData, setWeatherData] = useState([]);
   const [error, setError] = useState("");
+  const [inputError, setInputError] = useState('')
   const [input, setInput] = useState("");
-  const inputRef = useRef();
-  
 
   const search = async (city) => {
     const API_KEY = import.meta.env.VITE_WEATHER_API_KEY
@@ -74,7 +73,11 @@ function WeatherComponent() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    search(inputRef.current.value);
+    if(input.trim() !== '') {
+      search(input);
+    } else {
+      setInputError("Invalid city name")
+    }
   };
   
   const weatherCondition = weatherData?.condition || "";
@@ -101,7 +104,7 @@ function WeatherComponent() {
   const weatherIcon = getWeatherIcon();
 
   return (
-    <div className="w-full h-screen bg-[#202020] text-white flex justify-center items-center overflow-hidden">
+    <div className="w-full h-full text-white">
       {error ? (
         <div className="flex flex-col items-center justify-center gap-10 px-4">
           <img
@@ -120,9 +123,10 @@ function WeatherComponent() {
           </button>
         </div>
       ) : (
-        <div className="w-full flex justify-center items-center gap-4 py-32 max-[1440px]:px-20 max-[1024px]:px-9 max-[768px]:px-10 max-[768px]:flex-col max-[425px]:px-5">
-          <div className="left-container w-4/12 h-[55vh] bg-weather-img bg-cover rounded-2xl shadow-lg overflow-hidden max-[1440px]:w-5/12 max-[1024px]:w-6/12 max-[768px]:w-full max-[768px]:h-[45vh]">
+        <div className="w-full flex justify-center items-center gap-4 py-32 overscroll-auto max-[1024px]:px-9 max-[768px]:flex-col">
+          <div className="w-[30rem] bg-weather-img bg-cover rounded-2xl shadow-lg border-[1px] border-gray-400 overflow-hidden max-[768px]:w-[25rem] max-[425px]:w-[23rem]">
             <div className="backdrop-blur-sm px-8 py-12 w-[101%] h-[101%]">
+              {inputError && <p className="text-center [text-shadow:_1px_1px_20px_black] max-[768px]:mb-6 max-[425px]:mb-8">{inputError}</p>}
               <form
                 onSubmit={handleSearch}
                 className="search flex gap-2.5 w-full justify-center items-center max-[768px]:mt-[-20px] max-[425px]:mt-[-30px]"
@@ -130,7 +134,6 @@ function WeatherComponent() {
                 <input
                   type="text"
                   placeholder="search city..."
-                  ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.currentTarget.value)}
                   className="search-input w-full bg-zinc-800 tracking-wide px-3.5 py-2 rounded-full shadow-xl transition-all focus:border-2 focus:outline-none"
@@ -157,7 +160,7 @@ function WeatherComponent() {
                 <p className="font-[600] [text-shadow:_0_0_10px_rgb(0_0_0_/_60%)] mt-[-10px]">
                   feels like {weatherData.feelsTemp || "0"}°c
                 </p>
-                <h1 className="text-[3rem] font-bold tracking-[3px] [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
+                <h1 className="text-[3rem] font-bold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
                   {weatherData.day || "Weekday"}
                 </h1>
                 <div className="flex">
@@ -174,7 +177,7 @@ function WeatherComponent() {
             </div>
           </div>
 
-          <div className="right-container w-4/12 flex flex-col gap-2.5 overflow-hidden py-8 px-12 rounded-2xl bg-zinc-800 shadow-2xl transform rotate-y-[-5deg] max-[1440px]:w-6/12 max-[1024px]:w-6/12 max-[768px]:w-full max-[768px]:h-[50vh]">
+          <div className="w-[30rem] flex flex-col gap-2.5 overflow-hidden py-8 px-12 rounded-2xl bg-zinc-800 shadow-2xl border-[1px] border-gray-400 max-[768px]:w-[25rem] max-[425px]:w-[23rem]">
             <h1 className="text-3xl text-nowrap font-bold tracking-wider px-2 py-1.5 bg-[rgb(43,165,255)] bg-custom-gradient text-[#202020] text-center rounded-full mt-2.5 shadow-xl max-[1024px]:text-2xl max-[425px]:mt-[-5px]">
               Weather Details
             </h1>
@@ -250,7 +253,7 @@ function WeatherComponent() {
                 Weather Condition
               </h1>
               <img
-                className="w-20 bg-black p-2 mr-1.5 mt-2.5 rounded-full max-[768px]:hidden"
+                className="w-20 bg-black p-2 mr-1.5 mt-2.5 rounded-full"
                 src={condition}
                 alt="wind-speed-png"
               />

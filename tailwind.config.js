@@ -10,6 +10,17 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities(
+        {
+          '.scrollbar-none': {
+            'scrollbar-width': 'none',
+          },
+        },
+        ['responsive', 'hover']
+      );
+    },
+  ],
 }
 
