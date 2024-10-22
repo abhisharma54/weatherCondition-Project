@@ -19,6 +19,7 @@ import axios from "axios";
 function WeatherComponent() {
   const [weatherData, setWeatherData] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [inputError, setInputError] = useState('')
   const [input, setInput] = useState("");
 
@@ -27,9 +28,10 @@ function WeatherComponent() {
     const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
     try {
       setInput("");
+      setLoading(true);
       const response = await axios.get(url);
       const data = response.data;
-
+      
       const dayNow = new Intl.DateTimeFormat("en-US", {
         timeZone: data.location.tz_id,
         weekday: "long",
@@ -58,7 +60,9 @@ function WeatherComponent() {
       setWeatherData(weatherDetails);
       sessionStorage.setItem("weatherData", JSON.stringify(weatherDetails))
     } catch (error) {
-      setError("Failed to fetch weather data. Please provide a valid city name.\n", error);
+      setError("Failed to fetch weather data.", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,10 +77,11 @@ function WeatherComponent() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    console.log({input: input.toLowerCase(), location: weatherData.location.toLowerCase()})
     if(input.trim() !== '') {
       search(input);
     } else {
-      setInputError("Invalid city name")
+      setInputError("Please enter a city name")
     }
   };
   
@@ -104,8 +109,9 @@ function WeatherComponent() {
   const weatherIcon = getWeatherIcon();
 
   return (
-    <div className="w-full h-full text-white">
+    <div className="w-full h-screen text-white">
       {error ? (
+      <div className="min-h-full flex justify-center items-center">
         <div className="flex flex-col items-center justify-center gap-10 px-4">
           <img
             className="w-[250px] p-4 border-t-4 border-l-4 rounded-full shadow-2xl max-[425px]:w-[150px]"
@@ -122,11 +128,12 @@ function WeatherComponent() {
             Go back
           </button>
         </div>
+      </div>
       ) : (
-        <div className="w-full flex justify-center items-center gap-4 py-32 overscroll-auto max-[1024px]:px-9 max-[768px]:flex-col">
+        <div className="flex justify-center items-center gap-4 py-32 max-[1024px]:px-9 max-[768px]:flex-col">
           <div className="w-[30rem] bg-weather-img bg-cover rounded-2xl shadow-lg border-[1px] border-gray-400 overflow-hidden max-[768px]:w-[25rem] max-[425px]:w-[23rem]">
             <div className="backdrop-blur-sm px-8 py-12 w-[101%] h-[101%]">
-              {inputError && <p className="text-center [text-shadow:_1px_1px_20px_black] max-[768px]:mb-6 max-[425px]:mb-8">{inputError}</p>}
+              {inputError && <p className="text-center [text-shadow:_1px_1px_20px_green] max-[768px]:mb-6 max-[425px]:mb-8">{inputError}</p>}
               <form
                 onSubmit={handleSearch}
                 className="search flex gap-2.5 w-full justify-center items-center max-[768px]:mt-[-20px] max-[425px]:mt-[-30px]"
@@ -147,7 +154,11 @@ function WeatherComponent() {
                 </button>
               </form>
               <div className="temp-section flex flex-col justify-center items-center mt-8">
-                {weatherIcon && (
+                {loading? (<img
+                    className="w-32 max-[768px]:w-24 max-[425px]:w-20"
+                    src={clearSkyIcon}
+                    alt="default-icon"
+                  />) : weatherIcon && (
                   <img
                     className="w-32 max-[768px]:w-24 max-[425px]:w-20"
                     src={weatherIcon}
@@ -158,7 +169,7 @@ function WeatherComponent() {
                   {weatherData.temperature || "0"}°c
                 </h1>
                 <p className="font-[600] [text-shadow:_0_0_10px_rgb(0_0_0_/_60%)] mt-[-10px]">
-                  feels like {weatherData.feelsTemp || "0"}°c
+                  feels like {loading? "loading..." : weatherData.feelsTemp || "0"}°c
                 </p>
                 <h1 className="text-[3rem] font-bold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
                   {weatherData.day || "Weekday"}
@@ -169,15 +180,15 @@ function WeatherComponent() {
                     src={location}
                     alt="wind-speed-png"
                   />
-                  <p className="text-2xl font-semibold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] tracking-wider">
-                    {weatherData.location}
+                  <p className="text-2xl font-semibold [text-shadow:_0_0_5px_rgb(0_0_0_/_50%)] tracking-wider">
+                    {loading? "location loading..." : weatherData.location}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="w-[30rem] flex flex-col gap-2.5 overflow-hidden py-8 px-12 rounded-2xl bg-zinc-800 shadow-2xl border-[1px] border-gray-400 max-[768px]:w-[25rem] max-[425px]:w-[23rem]">
+          <div className="w-[30rem] flex flex-col gap-2.5 overflow-hidden py-8 px-12 rounded-2xl bg-[#202020] shadow-2xl border-[1px] border-gray-400 max-[768px]:w-[25rem] max-[425px]:w-[23rem]">
             <h1 className="text-3xl text-nowrap font-bold tracking-wider px-2 py-1.5 bg-[rgb(43,165,255)] bg-custom-gradient text-[#202020] text-center rounded-full mt-2.5 shadow-xl max-[1024px]:text-2xl max-[425px]:mt-[-5px]">
               Weather Details
             </h1>
@@ -193,7 +204,7 @@ function WeatherComponent() {
                 </h1>
               </div>
               <p className="text-xl font-normal tracking-wider max-[1024px]:text-[1.1rem]">
-                {weatherData.humidity}%
+                {loading? "loading..." : weatherData.humidity}%
               </p>
             </div>
             <div className="windSpeed flex justify-between">
@@ -208,7 +219,7 @@ function WeatherComponent() {
                 </h1>
               </div>
               <p className="text-xl font-normal tracking-wider max-[1024px]:text-[1.1rem]">
-                {weatherData.windSpeed}km/h
+                {loading? "loading..." : weatherData.windSpeed}km/h
               </p>
             </div>
             <div className="location flex justify-between">
@@ -223,7 +234,7 @@ function WeatherComponent() {
                 </h1>
               </div>
               <p className="text-xl text-nowrap font-normal tracking-wider max-[1024px]:text-[1.1rem]">
-                {weatherData.location}
+                {loading? "loading..." : weatherData.location}
               </p>
             </div>
             <div className="date flex justify-between">
@@ -234,7 +245,7 @@ function WeatherComponent() {
                 </h1>
               </div>
               <p className="text-xl font-normal tracking-wider max-[1024px]:text-[1.1rem]">
-                {new Date(weatherData.date).toLocaleDateString("en-IN")}
+                {loading? "loading..." : new Date(weatherData.date).toLocaleDateString("en-IN")}
               </p>
             </div>
             <div className="time flex justify-between">
@@ -245,7 +256,7 @@ function WeatherComponent() {
                 </h1>
               </div>
               <p className="text-xl text-nowrap font-normal tracking-wider max-[1024px]:text-[1.1rem]">
-                {weatherData.time}
+                {loading? "loading..." : weatherData.time}
               </p>
             </div>
             <div className="condition flex flex-col items-center gap-2.5 cursor-text">
@@ -258,7 +269,7 @@ function WeatherComponent() {
                 alt="wind-speed-png"
               />
               <p className="text-lg font-normal tracking-wider text-center max-[768px]:text-[1.3rem] max-[425px]:text-[1.1rem] max-[425px]:mt-0">
-                {weatherData.condition}
+                {loading? "loading..." : weatherData.condition}
               </p>
             </div>
           </div>
