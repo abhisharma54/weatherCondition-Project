@@ -60,7 +60,8 @@ function WeatherComponent() {
       setWeatherData(weatherDetails);
       sessionStorage.setItem("weatherData", JSON.stringify(weatherDetails))
     } catch (error) {
-      setError("Failed to fetch weather data.", error);
+      console.log(error)
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -77,9 +78,9 @@ function WeatherComponent() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log({input: input.toLowerCase(), location: weatherData.location.toLowerCase()})
     if(input.trim() !== '') {
       search(input);
+      setInputError("")
     } else {
       setInputError("Please enter a city name")
     }
@@ -172,7 +173,7 @@ function WeatherComponent() {
                   feels like {loading? "loading..." : weatherData.feelsTemp || "0"}°c
                 </p>
                 <h1 className="text-[3rem] font-bold [text-shadow:_0_0_5px_rgb(0_0_0_/_40%)] mt-[0.5rem] max-[1024px]:text-[2.5rem] max-[768px]:text-[2.3rem] max-[768px]:mt-[-5px]">
-                  {weatherData.day || "Weekday"}
+                  {loading ? "loading..." : weatherData.day }
                 </h1>
                 <div className="flex">
                   <img
